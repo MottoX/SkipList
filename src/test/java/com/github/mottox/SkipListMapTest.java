@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedMap;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +19,7 @@ import org.junit.Test;
  */
 public class SkipListMapTest {
 
-    private Map<Integer, String> map;
+    private SortedMap<Integer, String> map;
 
     @Before
     public void setUp() throws Exception {
@@ -146,5 +147,73 @@ public class SkipListMapTest {
         for (Map.Entry<Integer, String> entry : map.entrySet()) {
             Assert.assertEquals(--c, (int) entry.getKey());
         }
+    }
+
+    @Test
+    public void testSubMap() throws Exception {
+        map.put(2, "2");
+        map.put(-5, "-5");
+        map.put(12, "12");
+        map.put(-22, "-22");
+        map.put(7, "7");
+        map.put(10, "10");
+        map.put(11, "11");
+        map.put(32, "32");
+
+        SortedMap<Integer, String> subMap = map.subMap(2, 11);
+
+        Assert.assertEquals(3, subMap.size());
+        Assert.assertTrue(subMap.containsKey(2));
+        Assert.assertTrue(subMap.containsKey(7));
+        Assert.assertTrue(subMap.containsKey(10));
+
+        Assert.assertEquals(2, (int) subMap.firstKey());
+        Assert.assertEquals(10, (int) subMap.lastKey());
+
+        SortedMap<Integer, String> subSubMap = subMap.subMap(3, 10);
+        Assert.assertEquals(1, subSubMap.size());
+        Assert.assertTrue(subMap.containsKey(7));
+        Assert.assertEquals(7, (int) subSubMap.firstKey());
+        Assert.assertEquals(7, (int) subSubMap.lastKey());
+    }
+
+    @Test
+    public void testHeadMap() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            map.put(i, String.valueOf(i));
+        }
+        SortedMap<Integer, String> headMap = map.headMap(74);
+        Assert.assertEquals(74, headMap.size());
+        for (int i = 0; i < 74; i++) {
+            Assert.assertTrue(headMap.containsKey(i));
+        }
+        Assert.assertFalse(headMap.containsKey(74));
+
+        SortedMap<Integer, String> headHeadMap = headMap.headMap(53);
+        Assert.assertEquals(53, headHeadMap.size());
+        for (int i = 0; i < 53; i++) {
+            Assert.assertTrue(headHeadMap.containsKey(i));
+        }
+        Assert.assertFalse(headHeadMap.containsKey(53));
+
+    }
+
+    @Test
+    public void testTailMap() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            map.put(i, String.valueOf(i));
+        }
+        SortedMap<Integer, String> tailMap = map.tailMap(21);
+        Assert.assertEquals(79, tailMap.size());
+        for (int i = 21; i < 100; i++) {
+            Assert.assertTrue(tailMap.containsKey(i));
+        }
+
+        SortedMap<Integer, String> tailTailMap = tailMap.tailMap(59);
+        Assert.assertEquals(41, tailTailMap.size());
+        for (int i = 59; i < 100; i++) {
+            Assert.assertTrue(tailTailMap.containsKey(i));
+        }
+
     }
 }

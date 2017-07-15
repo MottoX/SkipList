@@ -12,11 +12,15 @@ result, the algorithms for insertion and deletion in skip lists are much simpler
 跳表的增删改查操作具有O(log N)的均摊复杂度。
 
 ## Implementation
-The `SkipListMap` uses skip list as the underlying essential data structure and implements `java.util.Map`.
+The [SkipListMap](src/main/java/com/github/mottox/SkipListMap.java) uses skip list as the underlying essential data structure and 
+implements
+ `java
+.util
+.Map`.
 Two extra sentinel nodes(head and tail) are used for the sake of convenience. The `SkipListMap` is generic and supports
 particular comparision function by passing a custom `java.util.Comparator` to the constructor.
 
-`SkipListMap`是基于跳表的实现的map。基本思路与跳表原著论文一致，在实现时为了方便起见，加入了头和尾两个哨兵节点。
+[SkipListMap](src/main/java/com/github/mottox/SkipListMap.java)是基于跳表的实现的map。基本思路与跳表原著论文一致，在实现时为了方便起见，加入了头和尾两个哨兵节点。
 
 ## Todo List
 * Implement `java.util.NavigableMap` interface.

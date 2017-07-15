@@ -6,11 +6,11 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedMap;
 
 /**
  * An implementation of {@link java.util.Map} based on skip lists, a data structure first described in 1989
@@ -20,9 +20,9 @@ import java.util.Set;
  *
  * @author Robin Wang
  */
-public class SkipListMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, java.io.Serializable {
+public class SkipListMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V>, java.io.Serializable {
 
-    private static final long serialVersionUID = -5425203423233739581L;
+    private static final long serialVersionUID = -7294702195698320197L;
 
     /**
      * The maximum level of the skip list.
@@ -294,6 +294,111 @@ public class SkipListMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, j
         return values == null ? values = new Values() : values;
     }
 
+    /**
+     * Returns the comparator used to order the keys in this skip list map, or
+     * {@code null} if this map uses the {@linkplain Comparable
+     * natural ordering} of its keys.
+     *
+     * @return the comparator used to order the keys in this skip list map,
+     * or {@code null} if this map uses the natural ordering of its keys
+     */
+    @Override
+    public Comparator<? super K> comparator() {
+        return comparator;
+    }
+
+    /**
+     * Returns a view of the portion of this map whose keys range from
+     * {@code fromKey}, inclusive, to {@code toKey}, exclusive.  (If
+     * {@code fromKey} and {@code toKey} are equal, the returned map
+     * is empty.)
+     * <p>
+     *
+     * @param fromKey low endpoint (inclusive) of the keys in the returned map
+     * @param toKey   high endpoint (exclusive) of the keys in the returned map
+     *
+     * @return a view of the portion of this map whose keys range from
+     * {@code fromKey}, inclusive, to {@code toKey}, exclusive
+     *
+     * @throws IllegalArgumentException if {@code fromKey} is greater than
+     *                                  {@code toKey}; or if this map itself has a restricted
+     *                                  range, and {@code fromKey} or {@code toKey} lies
+     *                                  outside the bounds of the range
+     */
+
+    @Override
+    public SortedMap<K, V> subMap(K fromKey, K toKey) {
+        return new SortedSubMap<>(this, false, fromKey, false, toKey);
+    }
+
+    /**
+     * Returns a view of the portion of this map whose keys are
+     * strictly less than {@code toKey}.
+     *
+     * @param toKey high endpoint (exclusive) of the keys in the returned map
+     *
+     * @return a view of the portion of this map whose keys are strictly
+     * less than {@code toKey}
+     *
+     * @throws IllegalArgumentException if this map itself has a
+     *                                  restricted range, and {@code toKey} lies outside the
+     *                                  bounds of the range
+     */
+    @Override
+    public SortedMap<K, V> headMap(K toKey) {
+        return new SortedSubMap<>(this, true, null, false, toKey);
+    }
+
+    /**
+     * Returns a view of the portion of this map whose keys are
+     * greater than or equal to {@code fromKey}.
+     *
+     * @param fromKey low endpoint (inclusive) of the keys in the returned map
+     *
+     * @return a view of the portion of this map whose keys are greater
+     * than or equal to {@code fromKey}
+     *
+     * @throws IllegalArgumentException if this map itself has a
+     *                                  restricted range, and {@code fromKey} lies outside the
+     *                                  bounds of the range
+     */
+    @Override
+    public SortedMap<K, V> tailMap(K fromKey) {
+        return new SortedSubMap<>(this, false, fromKey, true, null);
+    }
+
+    /**
+     * Returns the first (lowest) key currently in this skip list map.
+     *
+     * @return the first (lowest) key currently in this skip list map
+     *
+     * @throws NoSuchElementException if this map is empty
+     */
+    @Override
+    public K firstKey() {
+        Node<K, V> firstNode = firstNode();
+        if (firstNode == null) {
+            throw new NoSuchElementException();
+        }
+        return firstNode.key;
+    }
+
+    /**
+     * Returns the last (highest) key currently in this skip list map.
+     *
+     * @return the last (highest) key currently in this skip list map
+     *
+     * @throws NoSuchElementException if this map is empty
+     */
+    @Override
+    public K lastKey() {
+        Node<K, V> lastNode = lastNode();
+        if (lastNode == null) {
+            throw new NoSuchElementException();
+        }
+        return lastNode.key;
+    }
+
     private Node<K, V> firstNode() {
         return dataNodeOrNull(head.next[0]);
     }
@@ -308,7 +413,14 @@ public class SkipListMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, j
         if (node == head || node == tail) {
             return node == head ? -1 : 1;
         }
-        return (comparator != null) ? comparator.compare(node.key, key) : ((Comparable) node.key).compareTo(key);
+        return (comparator != null) ? comparator.compare(node.key, key) : ((Comparable<? super K>) node.key)
+                .compareTo(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    // compare two keys
+    final int compare(K lhs, K rhs) {
+        return comparator != null ? comparator.compare(lhs, rhs) : ((Comparable<? super K>) lhs).compareTo(rhs);
     }
 
     private boolean isDataNode(Node<K, V> node) {
@@ -353,6 +465,15 @@ public class SkipListMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, j
         return findClosestNode(key, relation, null);
     }
 
+    /**
+     * Find the node whose key is closest to the given key corresponding to the given {@link Relation}.
+     *
+     * @param key      the specific key used to find the closest node
+     * @param relation the specific relation
+     * @param update   the update array which is used by {@link SkipListMap#put(Object, Object)}
+     *
+     * @return the node whose key is closest to the given {@code key} or null if there is not.
+     */
     private Node<K, V> findClosestNode(K key, Relation relation, Node<K, V>[] update) {
         Node<K, V> node = head;
         for (int i = level - 1; i >= 0; i--) {
@@ -565,6 +686,162 @@ public class SkipListMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, j
         @Override
         public int size() {
             return size;
+        }
+    }
+
+    private static class SortedSubMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V>, java.io.Serializable {
+
+        private static final long serialVersionUID = -7244440549791596855L;
+
+        final SkipListMap<K, V> map;
+
+        final boolean fromStart;
+
+        final boolean toEnd;
+
+        // inclusive
+        final K low;
+
+        // exclusive
+        final K high;
+
+        transient EntrySet entrySet;
+
+        SortedSubMap(SkipListMap<K, V> map, boolean fromStart, K low, boolean toEnd, K high) {
+            if (!fromStart && !toEnd) {
+                if (map.compare(low, high) > 0) {
+                    throw new IllegalArgumentException("fromKey > toKey");
+                }
+            }
+            this.map = map;
+            this.low = low;
+            this.high = high;
+            this.fromStart = fromStart;
+            this.toEnd = toEnd;
+        }
+
+        @Override
+        public Set<Entry<K, V>> entrySet() {
+            return entrySet == null ? entrySet = new EntrySet() : entrySet;
+        }
+
+        @Override
+        public Comparator<? super K> comparator() {
+            return map.comparator();
+        }
+
+        @Override
+        public SortedMap<K, V> subMap(K fromKey, K toKey) {
+            if (!inRange(fromKey) || !inRange(toKey)) {
+                throw new IllegalArgumentException("out of range");
+            }
+            return new SortedSubMap<>(map, fromStart, fromKey, toEnd, toKey);
+        }
+
+        @Override
+        public SortedMap<K, V> headMap(K toKey) {
+            if (!inRange(toKey)) {
+                throw new IllegalArgumentException("out of range");
+            }
+            return new SortedSubMap<>(map, fromStart, low, toEnd, toKey);
+        }
+
+        @Override
+        public SortedMap<K, V> tailMap(K fromKey) {
+            if (!inRange(fromKey)) {
+                throw new IllegalArgumentException("out of range");
+            }
+            return new SortedSubMap<>(map, fromStart, fromKey, toEnd, high);
+        }
+
+        @Override
+        public K firstKey() {
+            return checkKey(lowestNode());
+        }
+
+        @Override
+        public K lastKey() {
+            return checkKey(highestNode());
+        }
+
+        // first or the one >= low
+        Node<K, V> lowestNode() {
+            return fromStart ? map.firstNode() : map.findClosestNode(low, Relation.GE);
+        }
+
+        // last or the one that < high
+        Node<K, V> highestNode() {
+            return toEnd ? map.lastNode() : map.findClosestNode(high, Relation.LT);
+        }
+
+        final boolean inRange(K key) {
+            // check if in closed range
+            return (fromStart || map.compare(key, low) >= 0)
+                    && (toEnd || map.compare(key, high) <= 0);
+        }
+
+        private K checkKey(Node<K, V> entry) {
+            if (entry == null) {
+                throw new NoSuchElementException();
+            }
+            return entry.getKey();
+        }
+
+        private class EntrySet extends AbstractSet<Entry<K, V>> {
+
+            transient int size = -1;
+
+            @Override
+            public Iterator<Entry<K, V>> iterator() {
+                return new EntryIterator(lowestNode(), highestNode());
+            }
+
+            @Override
+            public int size() {
+                if (fromStart && toEnd) {
+                    return map.size();
+                }
+                if (size == -1) {
+                    size = 0;
+                    forEach(ignored -> size++);
+                }
+                return size;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return lowestNode() != null;
+            }
+
+            private class EntryIterator implements Iterator<Entry<K, V>> {
+                Node<K, V> nextNode;
+
+                // exclusive
+                final Node<K, V> bound;
+
+                Entry<K, V> prevEntry;
+
+                EntryIterator(Node<K, V> fromNode, Node<K, V> bound) {
+                    this.nextNode = fromNode;
+                    this.bound = bound;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return nextNode != null && prevEntry != bound;
+                }
+
+                @Override
+                public Entry<K, V> next() {
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+                    prevEntry = this.nextNode;
+                    nextNode = this.nextNode.next[0];
+                    return prevEntry;
+                }
+            }
+
         }
     }
 
