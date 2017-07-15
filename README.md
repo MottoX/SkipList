@@ -1,4 +1,6 @@
 # SkipList
+[![Build Status](https://travis-ci.org/MottoX/SkipList.svg?branch=master)](https://travis-ci.org/MottoX/SkipList)
+
 A Java implementation of [skip list](http://dl.acm.org/citation.cfm?id=78977).
 
 [跳表](http://dl.acm.org/citation.cfm?id=78977)的Java语言实现。
