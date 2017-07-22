@@ -1,9 +1,9 @@
 # SkipList
 [![Build Status](https://travis-ci.org/MottoX/SkipList.svg?branch=master)](https://travis-ci.org/MottoX/SkipList)
 
-A Java implementation of [skip list](http://dl.acm.org/citation.cfm?id=78977).
+A Java implementation of [skip list](https://en.wikipedia.org/wiki/Skip_list).
 
-[跳表](http://dl.acm.org/citation.cfm?id=78977)的Java语言实现。
+[跳表](https://zh.wikipedia.org/wiki/%E8%B7%B3%E8%B7%83%E5%88%97%E8%A1%A8)的Java语言实现。
 
 ## Introduction
 >Skip lists are data structures that use probabilistic balancing rather than strictly enforced balancing. As a 
@@ -15,14 +15,12 @@ result, the algorithms for insertion and deletion in skip lists are much simpler
 
 ## Implementation
 The [SkipListMap](src/main/java/com/github/mottox/SkipListMap.java) uses skip list as the underlying essential data structure and 
-implements
- `java
-.util
-.Map`.
+implements `java.util.Map`.
 Two extra sentinel nodes(head and tail) are used for the sake of convenience. The `SkipListMap` is generic and supports
 particular comparision function by passing a custom `java.util.Comparator` to the constructor.
 
-[SkipListMap](src/main/java/com/github/mottox/SkipListMap.java)是基于跳表的实现的map。基本思路与跳表原著论文一致，在实现时为了方便起见，加入了头和尾两个哨兵节点。
+[SkipListMap](src/main/java/com/github/mottox/SkipListMap.java)是基于跳表的实现的map。
+基本思路与跳表[原著论文](skiplist.pdf)一致，在实现时为了方便起见，加入了head和tail两个哨兵节点。
 
 ## Todo List
 * Implement `java.util.NavigableMap` interface.
